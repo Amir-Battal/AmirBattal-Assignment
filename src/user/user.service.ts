@@ -18,9 +18,9 @@ export class UserService {
   }
 
   findAll() {
-    const users = this.userRepository.find();
-    return users;
-  }
+    const tasks = this.userRepository.find({ relations: ['tasks'] });
+    return tasks
+  } 
 
   findOne(id: number) {
     const user = this.userRepository.findOne({ where: { id } });

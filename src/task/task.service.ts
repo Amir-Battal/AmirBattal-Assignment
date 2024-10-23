@@ -12,23 +12,34 @@ export class TaskService {
     @InjectRepository(Task) private taskRepository: Repository<Task>,
   ) {}
 
-  create(createTaskDto: CreateTaskDto) {
-    return 'This action adds a new task';
+  async create(createTaskDto: CreateTaskDto) {
+    const res = await this.taskRepository.save(createTaskDto);
+    return res;
   }
 
   findAll() {
-    return `This action returns all task`;
+    const tasks = this.taskRepository.find();
+    return tasks;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} task`;
+    const task = this.taskRepository.findOne({ where: { id }});
+    return task;
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
+  async update(id: number, updateTaskDto: UpdateTaskDto) {
+    const existingTask = await this.taskRepository.findOneBy({ id: id });
+    existingTask.title = updateTaskDto.title;
+    existingTask.description = updateTaskDto.description;
+    existingTask.status = updateTaskDto.status;
+    existingTask.assignedTo = updateTaskDto.assignedTo;
+    
+    const updatedTask = await this.taskRepository.save(existingTask);
+    return existingTask;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} task`;
+    const deletedTask = this.taskRepository.delete({ id });
+    return deletedTask;
   }
 }

@@ -1,3 +1,4 @@
+import { Role } from "src/user/enum/role.enum";
 import { Task } from "src/task/entities/task.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -15,8 +16,12 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
-    role: string;
+    @Column({
+        type: "enum",
+        enum: Role,
+        default: Role.User
+    })
+    role: Role;
 
     @OneToMany(type => Task, task => task.assignedTo)
     tasks: Task[];

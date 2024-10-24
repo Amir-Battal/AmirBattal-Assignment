@@ -1,7 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { Roles } from 'src/user/decorator/roles.decorator';
+import { Role } from 'src/user/enum/role.enum';
+import { RolesGuard } from 'src/user/guards/roles/roles.guard';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('task')
 export class TaskController {
@@ -27,6 +31,9 @@ export class TaskController {
     return this.taskService.update(+id, updateTaskDto);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.taskService.remove(+id);

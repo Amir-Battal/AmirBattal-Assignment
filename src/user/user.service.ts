@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -48,8 +48,17 @@ export class UserService {
     return existingUser;
   }
 
-  remove(id: number) {
-    const deletedUser = this.userRepository.delete({ id });
-    return deletedUser
+  async remove(id: number) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });      
+      
+      if (!user) throw new UnauthorizedException("User doesn't exist");
+
+      await this.userRepository.delete({ id });
+      
+      return "User Deleted Successfully"
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

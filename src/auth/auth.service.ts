@@ -27,7 +27,7 @@ export class AuthService {
 
             if (user && user?.password == signInDto.password ) {
 
-                const payload = { sub: user.id, userName: user.name, email: user.email};
+                const payload = { sub: user.id, userName: user.name, email: user.email, role: user.role };
                 const accessToken = this.generateAccessToken(payload);
 
 
@@ -58,7 +58,7 @@ export class AuthService {
 
             const user = await this.userService.create(signUpDto);
 
-            const payload = { sub: user.id, userName: user.name, email: user.email};
+            const payload = { sub: user.id, userName: user.name, email: user.email, role: user.role };
             const accessToken = this.generateAccessToken(payload);
 
             return {

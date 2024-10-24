@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, SetMetadata, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Role } from 'src/user/enum/role.enum';
+import { Roles } from './decorator/roles.decorator';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from './guards/roles/roles.guard';
 
 @Controller('user')
 export class UserController {
@@ -28,6 +31,9 @@ export class UserController {
     return this.userService.update(+id, updateUserDto);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

@@ -1,8 +1,9 @@
-import { HttpException, HttpStatus, Injectable, Request, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Request, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { SignUpDto } from './dto/signUpDto';
 import { SignInDto } from './dto/signInDto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -11,13 +12,14 @@ export class AuthService {
         private userService: UserService,
         private jwtService: JwtService
     ){}
+    
 
     generateAccessToken(payload: any) {
         try {
             const accessToken = this.jwtService.sign(payload);
             return accessToken;
         } catch (error) {
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException(error.message);
         }
     }
 
@@ -25,7 +27,7 @@ export class AuthService {
         try {
             const user = await this.userService.findUserByEmail(signInDto.email);
 
-            if (user && user?.password == signInDto.password ) {
+            if (user && await bcrypt.compare(signInDto.password, user?.password) ) {
 
                 const payload = { sub: user.id, userName: user.name, email: user.email, role: user.role };
                 const accessToken = this.generateAccessToken(payload);
@@ -40,11 +42,10 @@ export class AuthService {
                 }
             }
             else{
-                return "Invalid credentials"
+                throw new UnauthorizedException("Invalid credentials");
             }
         } catch (error) {
-            console.log("Error in signIn controller", error.message);
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException(error.message);
         }
     }
 
@@ -55,6 +56,10 @@ export class AuthService {
             if (userExist) {
                 return "User already exist";
             }
+
+            const hash = await bcrypt.hash(signUpDto.password, parseInt(process.env.SALT_OR_ROUNDS));
+            signUpDto.password = hash;
+
 
             const user = await this.userService.create(signUpDto);
 
@@ -69,8 +74,7 @@ export class AuthService {
                 accessToken
             }
         } catch (error) {
-            console.log("Error in signUp controller", error.message);
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException(error.message);
         }
     }
 
@@ -78,7 +82,7 @@ export class AuthService {
         try {
             return req.user;
         } catch (error) {
-            throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new InternalServerErrorException(error.message);
         }
     }
 }

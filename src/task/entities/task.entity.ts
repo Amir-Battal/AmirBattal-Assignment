@@ -1,5 +1,5 @@
 import { User } from "src/user/entities/user.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('task')
 export class Task {
@@ -15,9 +15,9 @@ export class Task {
     @Column()
     status: string;
 
-    @ManyToOne(type => User, user => user.tasks)
-    @JoinColumn({ name: 'assignedTo' })
-    assignedTo: User;
+    @ManyToMany(() => User, user => user.tasks)
+    @JoinTable()
+    assignedTo: User[];
 
     @CreateDateColumn({ type: "timestamp without time zone", default: () => "CURRENT_TIMESTAMP" })
     createdAt: string;

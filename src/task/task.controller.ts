@@ -6,6 +6,7 @@ import { Roles } from 'src/user/decorator/roles.decorator';
 import { Role } from 'src/user/enum/role.enum';
 import { RolesGuard } from 'src/user/guards/roles/roles.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { AssignedTaskTo } from './dto/assigned-task-to';
 
 @Controller('task')
 export class TaskController {
@@ -14,6 +15,16 @@ export class TaskController {
   @Post()
   create(@Body() createTaskDto: CreateTaskDto) {
     return this.taskService.create(createTaskDto);
+  }
+
+  @Post(':id/complete')
+  markAsComplete(@Param('id') id: string) {
+    return this.taskService.markAsComplete(+id);
+  }
+
+  @Post('/assign')
+  assignedTask(@Body() assignedTaskTo: AssignedTaskTo) {
+    return this.taskService.assignedTask(assignedTaskTo);
   }
 
   @Get()

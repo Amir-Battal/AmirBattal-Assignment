@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { TaskModule } from './task/task.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       // if true the DataBase auto update, false we need migration // npm run migration:gen ... 
       synchronize: true,
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

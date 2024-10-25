@@ -19,11 +19,10 @@ import { AuthModule } from './auth/auth.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      // entities: [Payment],
       autoLoadEntities: true,
 
       // if true the DataBase auto update, false we need migration // npm run migration:gen ... 
-      synchronize: true,
+      synchronize: false,
     }),
     AuthModule,
   ],

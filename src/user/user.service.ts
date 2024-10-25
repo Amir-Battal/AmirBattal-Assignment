@@ -1,9 +1,11 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { Role } from './enum/role.enum';
+
 
 @Injectable()
 export class UserService {
@@ -12,52 +14,132 @@ export class UserService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
+  private readonly logger = new Logger(UserService.name)
+
   async create(createUserDto: CreateUserDto) {
-    const res = await this.userRepository.save(createUserDto);
-    return res;
+    try {
+      const res = await this.userRepository.save(createUserDto);
+
+      this.logger.log(`User Created Successfully`);
+      return res;
+    } catch (error) {
+      this.logger.error('Failed to create user', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
-  findAll() {
-    const tasks = this.userRepository.find({ relations: ['tasks'] });
-    return tasks
+  async makeAdmin(id: number) {
+    try {
+      const user = await this.userRepository.findOne({ where: { id } });
+  
+      if (!user) {
+        throw new UnauthorizedException("User doesn't exist");
+      }
+  
+      user.role = Role.Admin;
+      await this.userRepository.save(user);
+  
+      this.logger.log(`User ${user.id} is now admin`);
+      return "User is now admin"
+    } catch (error) {
+      this.logger.error(`Failed to makeAdmin`, error.stack)
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async findAll(page: number = 1, limit: number = 10) {
+    try {
+
+      limit = limit > 100 ? 100 : limit;
+
+      const [tasks, total] = await this.userRepository.findAndCount({ 
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['tasks'] 
+      });
+
+      this.logger.log(`Users Fetched Successfully`);
+      return {
+        data: tasks,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      this.logger.error(`Failed to fetch users`, error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   } 
 
   findOne(id: number) {
-    const user = this.userRepository.findOne({ where: { id } });
-    return user
+    try {
+      const user = this.userRepository.findOne({ where: { id }, relations: ['tasks'] });
+
+      this.logger.log(`User Fetched Successfully`);
+      return user
+    } catch (error) {
+      this.logger.error('Failed to fetch user', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   findUserByName(name: string) {
-    const user = this.userRepository.findOne({ where: { name } });
-    return user
+    try {
+      const user = this.userRepository.findOne({ where: { name } });
+
+      this.logger.log(`User Fetched Successfully`);
+      return user
+    } catch (error) {
+      this.logger.error('Failed to fetch user', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   findUserByEmail(email: string) {
-    const user = this.userRepository.findOne({ where: { email } });
-    return user;
+    try {
+      const user = this.userRepository.findOne({ where: { email } });
+
+      this.logger.log(`User Fetched Successfully`);
+      return user;
+    } catch (error) {
+      this.logger.error('Failed to fetch user', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const existingUser = await this.userRepository.findOneBy({ id: id });
-    existingUser.name = updateUserDto.name;
-    existingUser.email = updateUserDto.email;
-    existingUser.password = updateUserDto.password;
-    existingUser.role = updateUserDto.role;
+    try {
+      const existingUser = await this.userRepository.findOneBy({ id: id });
+      existingUser.name = updateUserDto.name;
+      existingUser.email = updateUserDto.email;
+      existingUser.password = updateUserDto.password;
+      existingUser.role = updateUserDto.role;
+  
+      await this.userRepository.save(existingUser);
 
-    const updatedUser = await this.userRepository.save(existingUser);
-    return existingUser;
+      this.logger.log(`User ${existingUser.id} Updated Successfully`);
+      return existingUser;
+    } catch (error) {
+      this.logger.error('Failed to update user', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async remove(id: number) {
     try {
-      const user = await this.userRepository.findOne({ where: { id } });      
+      const user = await this.userRepository.findOne({ where: { id }, relations: ['tasks'] });      
       
       if (!user) throw new UnauthorizedException("User doesn't exist");
 
+      user.tasks = [];
+      await this.userRepository.save(user);
+
       await this.userRepository.delete({ id });
       
-      return "User Deleted Successfully"
+      this.logger.log(`User ${user.id} Deleted Successfully`);
+      return "User Deleted Successfully";
     } catch (error) {
+      this.logger.error('Failed to delete user', error.stack);
       throw new InternalServerErrorException(error.message);
     }
   }

@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Param, Delete, SetMetadata, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, UseGuards, Post, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Role } from 'src/user/enum/role.enum';
@@ -6,14 +6,18 @@ import { Roles } from './decorator/roles.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from './guards/roles/roles.guard';
 
+
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10
+  ) {
+    return this.userService.findAll(page, limit);
   }
 
   @Get(':id')
@@ -24,6 +28,14 @@ export class UserController {
   @Get()
   findUserByName(@Param('name') name: string) {
     return this.userService.findUserByName(name);
+  }
+
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard)
+  @Post(':id/make-admin')
+  makeAdmin(@Param('id') id: string){
+    return this.userService.makeAdmin(+id)
   }
 
   @Patch(':id')

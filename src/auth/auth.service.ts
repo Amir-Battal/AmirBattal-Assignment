@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Request, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, Request, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { SignUpDto } from './dto/signUpDto';
@@ -12,13 +12,18 @@ export class AuthService {
         private userService: UserService,
         private jwtService: JwtService
     ){}
+
+    private readonly logger = new Logger('AuthService')
     
 
     generateAccessToken(payload: any) {
         try {
             const accessToken = this.jwtService.sign(payload);
+
+            this.logger.log(`Access Token Generated Successfully`);
             return accessToken;
         } catch (error) {
+            this.logger.error('Failed to generate access token', error.stack);
             throw new InternalServerErrorException(error.message);
         }
     }
@@ -33,6 +38,7 @@ export class AuthService {
                 const accessToken = this.generateAccessToken(payload);
 
 
+                this.logger.log(`User Logged In Successfully`);
                 return {
                     id: user.id,
                     name: user.name,
@@ -42,9 +48,11 @@ export class AuthService {
                 }
             }
             else{
+                this.logger.error('Invalid credentials');
                 throw new UnauthorizedException("Invalid credentials");
             }
         } catch (error) {
+            this.logger.error('Failed to login user', error.stack);
             throw new InternalServerErrorException(error.message);
         }
     }
@@ -66,6 +74,8 @@ export class AuthService {
             const payload = { sub: user.id, userName: user.name, email: user.email, role: user.role };
             const accessToken = this.generateAccessToken(payload);
 
+
+            this.logger.log(`User Signed Up Successfully`);
             return {
                 id: user.id,
                 name: user.name,
@@ -74,14 +84,17 @@ export class AuthService {
                 accessToken
             }
         } catch (error) {
+            this.logger.error('Failed to signup user', error.stack);
             throw new InternalServerErrorException(error.message);
         }
     }
 
     async getProfile(@Request() req) {
         try {
+            this.logger.log(`User Profile Fetched Successfully`);
             return req.user;
         } catch (error) {
+            this.logger.error('Failed to fetch user profile', error.stack);
             throw new InternalServerErrorException(error.message);
         }
     }

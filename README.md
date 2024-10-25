@@ -66,7 +66,10 @@
 
 
 ## ERD
+<div align="center">
+  
 ![TaskManagementERD](https://github.com/user-attachments/assets/4de8d4ca-1591-42c0-98a3-b37d076d6d27)
+</div>
 
 
 ## API Reference

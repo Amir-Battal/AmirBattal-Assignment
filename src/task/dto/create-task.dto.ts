@@ -12,6 +12,4 @@ export class CreateTaskDto {
 
     @IsNumber()
     assignedTo;
-    
-    createdAt;
 }

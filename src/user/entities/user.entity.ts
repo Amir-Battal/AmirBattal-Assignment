@@ -1,6 +1,6 @@
-import { Task } from "src/task/entities/task.entity";
+import { Task } from "../../task/entities/task.entity";
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Role } from "src/user/enum/role.enum";
+import { Role } from "../../enum/role.enum";
 
 @Entity('user')
 export class User {

@@ -2,12 +2,16 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } f
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Roles } from 'src/user/decorator/roles.decorator';
-import { Role } from 'src/user/enum/role.enum';
-import { RolesGuard } from 'src/user/guards/roles/roles.guard';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { Role } from '../enum/role.enum';
+import { RolesGuard } from '../guards/roles/roles.guard';
+import { AuthGuard } from '../guards/auth/auth.guard';
 import { AssignedTaskTo } from './dto/assigned-task-to';
+import { Roles } from '../decorator/roles.decorator';
 
+
+@Roles(Role.Admin, Role.User)
+@UseGuards(RolesGuard)
+@UseGuards(AuthGuard)
 @Controller('task')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}

@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './entities/task.entity';
 import { Repository } from 'typeorm';
 import { AssignedTaskTo } from './dto/assigned-task-to';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class TaskService {
@@ -22,7 +22,10 @@ export class TaskService {
       const res = await this.taskRepository.save(createTaskDto);
 
       this.logger.log(`Task Created Successfully`);
-      return res;
+      return {
+        res,
+        message: "Task created successfully"
+      };
     } catch (error) {
       this.logger.error('Failed to create task', error.stack);
       throw new InternalServerErrorException(error.message);
@@ -31,7 +34,7 @@ export class TaskService {
 
   async markAsComplete(id: number) {
     try {
-      const existingTask = await this.taskRepository.findOneBy({ id: id });
+      const existingTask = await this.taskRepository.findOne({ where: { id } });
   
       if (!existingTask) {
         throw new NotFoundException('Task not found');
@@ -41,71 +44,75 @@ export class TaskService {
       await this.taskRepository.save(existingTask);
 
       this.logger.log(`Task ${existingTask.id} Marked as Complete`);
-      return "Task Marked as Complete";
+      return {
+        message: "Task marked as complete"
+      };
     } catch (error) {
       this.logger.error('Failed to mark task as complete', error.stack);
       throw new InternalServerErrorException(error.message);
     }
   }
 
-async assignedTask(assignedTaskTo: AssignedTaskTo) {
-  try {
-    const task = await this.taskRepository.findOne({
-      where: { id: assignedTaskTo.taskId },
-      relations: ['assignedTo'],
-    });
-  
-    const user = await this.userService.findOne(assignedTaskTo.to);
-  
-    if (!task) {
-      throw new NotFoundException('Task not found');
-    }
-  
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-  
-    task.assignedTo = task.assignedTo || [];
-  
-    task.assignedTo.push(user);
-    await this.taskRepository.save(task);
-  
-    this.logger.log(`Task ${task.id} assigned to user ${user.id}`);
-    return 'Task Assigned Successfully';
-  } catch (error) {
-    this.logger.error('Failed to assign task', error.stack);
-    throw new InternalServerErrorException(error.message);
-  }
-}
-
-
-async findAll(page: number = 1, limit: number = 10) {
-  try {
-    limit = limit > 100 ? 100 : limit;
-
-    const [tasks, total] = await this.taskRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      relations: ['assignedTo'],
-    });
-
-    this.logger.log(`Tasks Fetched Successfully with pagination`);
-
-    return {
-      data: tasks,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
-    };
-  } catch (error) {
-    this.logger.error('Failed to fetch tasks with pagination', error.stack);
-    throw new InternalServerErrorException(error.message);
-  }
-}
-
-  findOne(id: number) {
+  async assignedTask(assignedTaskTo: AssignedTaskTo) {
     try {
-      const task = this.taskRepository.findOne({ where: { id }});
+      const task = await this.taskRepository.findOne({
+        where: { id: assignedTaskTo.taskId },
+        relations: ['assignedTo'],
+      });
+    
+      const user = await this.userService.findOne(assignedTaskTo.to);
+    
+      if (!task) {
+        throw new NotFoundException('Task not found');
+      }
+    
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+    
+      task.assignedTo = task.assignedTo || [];
+    
+      task.assignedTo.push(user);
+      await this.taskRepository.save(task);
+    
+      this.logger.log(`Task ${task.id} assigned to user ${user.id}`);
+      return{
+        message: "Task assigned successfully"
+      };
+    } catch (error) {
+      this.logger.error('Failed to assign task', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+
+  async findAll(page: number = 1, limit: number = 10) {
+    try {
+      limit = limit > 100 ? 100 : limit;
+
+      const [tasks, total] = await this.taskRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['assignedTo'],
+      });
+
+      this.logger.log(`Tasks Fetched Successfully with pagination`);
+
+      return {
+        data: tasks,
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      this.logger.error('Failed to fetch tasks with pagination', error.stack);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const task = await this.taskRepository.findOne({ where: { id }});
 
       if (!task) {
         throw new NotFoundException('Task not found');
@@ -132,6 +139,7 @@ async findAll(page: number = 1, limit: number = 10) {
       if (!tasks) {
         throw new NotFoundException('No tasks found');
       }
+      
 
       this.logger.log(`Tasks Fetched Successfully`);
       return {
@@ -176,7 +184,7 @@ async findAll(page: number = 1, limit: number = 10) {
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
-      const existingTask = await this.taskRepository.findOneBy({ id: id });
+      const existingTask = await this.taskRepository.findOne({ where: { id } });
 
       if (!existingTask) {
         throw new NotFoundException('Task not found');
@@ -190,7 +198,10 @@ async findAll(page: number = 1, limit: number = 10) {
       await this.taskRepository.save(existingTask);
       
       this.logger.log(`Task ${existingTask.id} Updated Successfully`);
-      return existingTask;
+      return {
+        existingTask,
+        message: "Task updated successfully"
+      };
     } catch (error) {
       this.logger.error('Failed to update task', error.stack);
       throw new InternalServerErrorException(error.message);
@@ -199,7 +210,7 @@ async findAll(page: number = 1, limit: number = 10) {
 
   async remove(id: number) {
     try {
-      const task = await this.taskRepository.findOneBy({ id });
+      const task = await this.taskRepository.findOne({ where: { id } });
 
       if(!task) throw new UnauthorizedException("Task doesn't exist");
 
@@ -213,3 +224,4 @@ async findAll(page: number = 1, limit: number = 10) {
     }
   }
 }
+

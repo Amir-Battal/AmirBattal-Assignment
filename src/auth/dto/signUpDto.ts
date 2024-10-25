@@ -9,7 +9,4 @@ export class SignUpDto {
 
     @IsNotEmpty()
     password;
-
-    @IsNotEmpty()
-    role;
 }

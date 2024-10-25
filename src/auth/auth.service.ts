@@ -1,9 +1,10 @@
 import { Injectable, InternalServerErrorException, Logger, Request, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 import { SignUpDto } from './dto/signUpDto';
 import { SignInDto } from './dto/signInDto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';   
+import { Role } from '../enum/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -68,8 +69,12 @@ export class AuthService {
             const hash = await bcrypt.hash(signUpDto.password, parseInt(process.env.SALT_OR_ROUNDS));
             signUpDto.password = hash;
 
-
-            const user = await this.userService.create(signUpDto);
+            const userData = {
+                ...signUpDto,
+                role: Role.User
+            };
+            
+            const user = await this.userService.create(userData);
 
             const payload = { sub: user.id, userName: user.name, email: user.email, role: user.role };
             const accessToken = this.generateAccessToken(payload);
@@ -77,11 +82,14 @@ export class AuthService {
 
             this.logger.log(`User Signed Up Successfully`);
             return {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                accessToken
+                data: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                    accessToken
+                },
+                message: "User created successfully"
             }
         } catch (error) {
             this.logger.error('Failed to signup user', error.stack);

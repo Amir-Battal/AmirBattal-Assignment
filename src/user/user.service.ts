@@ -4,7 +4,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { Role } from './enum/role.enum';
+import { Role } from '../enum/role.enum';
+import * as bcrypt from 'bcrypt';
+
 
 
 @Injectable()
@@ -40,7 +42,7 @@ export class UserService {
       await this.userRepository.save(user);
   
       this.logger.log(`User ${user.id} is now admin`);
-      return "User is now admin"
+      return { message: "User is now admin" };
     } catch (error) {
       this.logger.error(`Failed to makeAdmin`, error.stack)
       throw new InternalServerErrorException(error.message);
@@ -71,9 +73,9 @@ export class UserService {
     }
   } 
 
-  findOne(id: number) {
+  async findOne(id: number) {
     try {
-      const user = this.userRepository.findOne({ where: { id }, relations: ['tasks'] });
+      const user = await this.userRepository.findOne({ where: { id }, relations: ['tasks'] });
 
       this.logger.log(`User Fetched Successfully`);
       return user
@@ -83,9 +85,9 @@ export class UserService {
     }
   }
 
-  findUserByName(name: string) {
+  async findUserByName(name: string) {
     try {
-      const user = this.userRepository.findOne({ where: { name } });
+      const user = await this.userRepository.findOne({ where: { name } });
 
       this.logger.log(`User Fetched Successfully`);
       return user
@@ -95,9 +97,9 @@ export class UserService {
     }
   }
 
-  findUserByEmail(email: string) {
+  async findUserByEmail(email: string) {
     try {
-      const user = this.userRepository.findOne({ where: { email } });
+      const user = await this.userRepository.findOne({ where: { email } });
 
       this.logger.log(`User Fetched Successfully`);
       return user;
@@ -109,11 +111,13 @@ export class UserService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
-      const existingUser = await this.userRepository.findOneBy({ id: id });
+      const existingUser = await this.userRepository.findOne({ where: { id } });
       existingUser.name = updateUserDto.name;
       existingUser.email = updateUserDto.email;
-      existingUser.password = updateUserDto.password;
-      existingUser.role = updateUserDto.role;
+
+      const hash = await bcrypt.hash(updateUserDto.password, parseInt(process.env.SALT_OR_ROUNDS));
+      existingUser.password = hash;
+
   
       await this.userRepository.save(existingUser);
 

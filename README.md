@@ -60,6 +60,7 @@
         - You can do the following: SignUp, SignIn, GetProfile, CRUD, Each user can link to more than one task.
       - Task Section:
         - You can do the following: CRUD, Each task can be associated with many users.
+      - The relationship between the user and the task is a ManyToMany Relationship.
   - This project contains: Logging using Winston library for Log and Errors
 
 

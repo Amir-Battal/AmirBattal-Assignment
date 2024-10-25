@@ -3,26 +3,22 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { TaskModule } from './task/task.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import typeorm from './config/typeorm';
 
 @Module({
   imports: [
     UserModule, 
     TaskModule,
-    ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: process.env.DB_TYPE as any,
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT as any,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      autoLoadEntities: true,
-
-      // if true the DataBase auto update, false we need migration // npm run migration:gen ... 
-      synchronize: false,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [typeorm]
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => (configService.get('typeorm'))
     }),
     AuthModule,
   ],

@@ -60,6 +60,7 @@
         - You can do the following: SignUp, SignIn, GetProfile, CRUD, Each user can link to more than one task.
       - Task Section:
         - You can do the following: CRUD, Each task can be associated with many users.
+  - This project contains: Logging using Winston library for Log and Errors
 
 
 ## API Reference

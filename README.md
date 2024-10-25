@@ -43,6 +43,7 @@
 
 <p align="center">
   <a href="#key-features">Key Features</a> •
+  <a href="#erd">ERD</a> •
   <a href="#api-reference">API Reference</a> •
   <a href="#run-locally">Run Locally</a> •
   <a href="#run-test">Run tests</a> •
@@ -62,6 +63,10 @@
         - You can do the following: CRUD, Each task can be associated with many users.
       - The relationship between the user and the task is a ManyToMany Relationship.
   - This project contains: Logging using Winston library for Log and Errors
+
+
+## ERD
+![TaskManagementERD](https://github.com/user-attachments/assets/4de8d4ca-1591-42c0-98a3-b37d076d6d27)
 
 
 ## API Reference

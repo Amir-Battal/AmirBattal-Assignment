@@ -1,5 +1,5 @@
 <div align="center">
-  <h1># AmirBattal-Assignment</h1>
+  <h1>AmirBattal-Assignment</h1>
   The task involves creating a task management system with features like user authentication, task assignment, and database integration, while ensuring security, testing.
 </div>
 <h1 align="center">
